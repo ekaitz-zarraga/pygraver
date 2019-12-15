@@ -1,6 +1,5 @@
 import serial
 import PIL
-from PIL import Image
 import PIL.ImageOps as imops
 from time import sleep
 
