@@ -1,9 +1,11 @@
 import argparse
+from time import sleep
 from collections import OrderedDict
 from serial.tools.list_ports import comports
 from v1_protocol import V1Protocol
 from v2_protocol import V2Protocol
 from v3_protocol import V3Protocol
+from PIL import Image
 
 protocols = OrderedDict( (i.version, i) for i in [ V1Protocol,
                                                    V2Protocol,
@@ -43,7 +45,8 @@ def create_argument_parser():
     home = sub.add_parser("home", help="Move engraver to home")
     port_and_protocol_args(home)
 
-    start = sub.add_parser("start", help="Start engraving with burn time [Default 60]")
+    start = sub.add_parser("start",
+                           help="Start engraving with burn time [Default 60]")
     port_and_protocol_args(start)
     start.add_argument('burn_time', nargs=1, default=60, help='Burn time')
 
@@ -59,37 +62,44 @@ def create_argument_parser():
     return parser
 
 
+
+# Tools
 def show_version():
-    # TODO Print protocols
-    pass
+    print("v0.0.1") # TODO: Unhardcode this
 def show_available():
     """
     NOTE:
     Support is limited to a number of operating systems. On some systems
-    description and hardware ID will not be available (None). 
+    description and hardware ID will not be available (None).
     """
-    # TODO print comports() nicely
-    pass
-def show_home():
-    # TODO
-    pass
-def start(port=None, burn_time=60):
-    # TODO
-    pass
-def pause(port=None):
-    # TODO
-    pass
-def reset(port=None):
-    # TODO
-    pass
-def upload(port=None, image=None):
-    # TODO
-    pass
+    for i in comports:
+        print(i)
+        # Use this to print nicely
+        # https://pythonhosted.org/pyserial/tools.html#serial.tools.list_ports.ListPortInfo
+
+tools = {
+    "available": available,
+    "version":   version
+}
+
+# Commands
+def home(engraver):
+    engraver.home()
+def start(engraver, burn_time=60):
+    engraver.start(burn_time)
+def pause(engraver):
+    engraver.pause()
+def reset(engraver):
+    engraver.reset()
+def upload(engraver, image=None):
+    msecs = engraver.erase()
+    engraver.await_transmission()
+    sleep(float(msecs)/1000)
+    engraver.upload_image(Image.open(image))
+
 
 commands = {
-    "version": show_version,
-    "available": show_available,
-    "home": show_home,
+    "home": home,
     "start": start,
     "pause": pause,
     "reset": reset,
@@ -99,6 +109,16 @@ commands = {
 # https://github.com/camrein/EzGraver/issues/43
 if __name__ == "__main__":
     args = vars(create_argument_parser().parse_args())
+
     command = args["command"]
-    del args["command"]
-    commands[command](args)
+
+    if command in commands.keys():
+        engraver = create(args["port"], protocol_version=args["protocol"])
+        del args["command"]
+        del args["port"]
+        del args["protocol"]
+        commands[command](engraver, **args)
+    elif command in tools.keys():
+        tools[command]()
+    else:
+        ValueError("Unknown command")
