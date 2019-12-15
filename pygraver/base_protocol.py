@@ -1,5 +1,7 @@
 import serial
 import PIL
+from PIL import Image
+import PIL.ImageOps as imops
 from time import sleep
 
 class BaseProtocol:
@@ -62,9 +64,18 @@ class BaseProtocol:
         _transmit(b"\xFE"*8);
         return 6000 # NOTE: I don't like this.
 
-    def upload_image(self):
-        # TODO
-        raise NotImplementedError()
+    def upload_image(self, image):
+        """
+        NOTE: Check if conversions are right
+        """
+        im = imops.pad(image, (self.image_width, self.image_height))
+                  .convert("1")
+        im = imops.mirror(im)
+        im = imops.invert(im)
+
+        imbytes = im.tobytes()
+        self._transmit(imbytes)
+        return len(imbytes)
 
     def await_tx(self, msecs):
         sleep_time = 0.5 / 1000 # 0.5 msecs
@@ -76,8 +87,9 @@ class BaseProtocol:
         return -1 # Timed out
 
 
-    def _transmit(self, data, chunk_size=None):
-        pass
+    def _transmit(self, data):
+        # it's blocking by default
+        self._serial.write(data)
 
     def _set_burn_time(self, burn_time):
         "Receives burn_time as an integer between 1 and 240"
