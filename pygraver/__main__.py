@@ -37,7 +37,6 @@ def create_argument_parser():
             )
 
     version = sub.add_parser("version", help="Show version information")
-    port_and_protocol_args(version)
 
     available = sub.add_parser("available", help="Show available ports")
 
