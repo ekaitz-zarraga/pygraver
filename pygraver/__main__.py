@@ -7,9 +7,9 @@ from v2_protocol import V2Protocol
 from v3_protocol import V3Protocol
 from PIL import Image
 
-protocols = OrderedDict( (i.version, i) for i in [ V1Protocol,
+protocols = {i.version: i for i in [ V1Protocol,
                                                    V2Protocol,
-                                                   V3Protocol ] )
+                                                   V3Protocol ] }
 versions = tuple(protocols.keys())
 
 def create(port, protocol_version="v1"):
@@ -24,8 +24,8 @@ def port_and_protocol_args(parser):
     """
     Adds arguments every command has.
     """
-    parser.add_argument('port', nargs=1, default=None, help='Port')
-    parser.add_argument('protocol', nargs=1, choices=versions,
+    parser.add_argument('port', type=str, default=None, help='Port')
+    parser.add_argument('protocol', type=str, choices=versions,
                                 default=versions[0], help='Protocol version',)
 
 def create_argument_parser():
@@ -40,7 +40,6 @@ def create_argument_parser():
     port_and_protocol_args(version)
 
     available = sub.add_parser("available", help="Show available ports")
-    port_and_protocol_args(available)
 
     home = sub.add_parser("home", help="Move engraver to home")
     port_and_protocol_args(home)
@@ -48,7 +47,7 @@ def create_argument_parser():
     start = sub.add_parser("start",
                            help="Start engraving with burn time [Default 60]")
     port_and_protocol_args(start)
-    start.add_argument('burn_time', nargs=1, default=60, help='Burn time')
+    start.add_argument('burn_time', type=int, default=60, help='Burn time')
 
     pause = sub.add_parser("pause", help="Pause engraver")
     port_and_protocol_args(pause)
@@ -58,21 +57,21 @@ def create_argument_parser():
 
     upload = sub.add_parser("upload", help="Upload image to engraver")
     port_and_protocol_args(upload)
-    upload.add_argument('image', nargs=1, default=None, help='Image')
+    upload.add_argument('image', default=None, help='Image')
     return parser
 
 
 
 # Tools
-def show_version():
+def version():
     print("v0.0.1") # TODO: Unhardcode this
-def show_available():
+def available():
     """
     NOTE:
     Support is limited to a number of operating systems. On some systems
     description and hardware ID will not be available (None).
     """
-    for i in comports:
+    for i in comports():
         print(i)
         # Use this to print nicely
         # https://pythonhosted.org/pyserial/tools.html#serial.tools.list_ports.ListPortInfo
@@ -93,7 +92,7 @@ def reset(engraver):
     engraver.reset()
 def upload(engraver, image=None):
     msecs = engraver.erase()
-    engraver.await_transmission()
+    engraver.await_tx(msecs)
     sleep(float(msecs)/1000)
     engraver.upload_image(Image.open(image))
 
@@ -111,6 +110,7 @@ if __name__ == "__main__":
     args = vars(create_argument_parser().parse_args())
 
     command = args["command"]
+
 
     if command in commands.keys():
         engraver = create(args["port"], protocol_version=args["protocol"])

@@ -1,4 +1,5 @@
 from base_protocol import BaseProtocol
+import PIL.ImageOps as imops
 
 class V3Protocol(BaseProtocol):
 
@@ -27,7 +28,7 @@ class V3Protocol(BaseProtocol):
         if burn_time < 0x01 or burn_time > 0xF0:
             raise ValueError("Burn time out of range: [1 (0x01), 240 (0xF0)]")
         burn_bin = bytes(burn_time,)
-        self._transmit(b"\xFF\x05"+ burn_time + "\x00") # Converts to byte
+        self._transmit(b"\xFF\x05"+ bytes((burn_time,)) + b"\x00") # Converts to byte
 
     def pause(self):
         self._transmit(b"\xFF\x01\x02\x00")
@@ -45,7 +46,13 @@ class V3Protocol(BaseProtocol):
         self._transmit(b"\xFF\x06\x01\x00")
         return 50
 
-    def upload_image(self):
+    def upload_image(self, image):
         # TODO
-        raise NotImplementedError()
+        im = imops.pad(image, (self.image_width, self.image_height))\
+                  .convert("1")
+        im = imops.mirror(im)
+
+        imbytes = im.tobytes()
+        self._transmit(imbytes)
+        return len(imbytes)
 

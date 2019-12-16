@@ -8,13 +8,13 @@ class BaseProtocol:
     image_height = 512
     version      = None
 
-    def __init__(port, baudrate=57600,
+    def __init__(self, port, baudrate=57600,
                        parity=serial.PARITY_NONE,
                        databits=serial.EIGHTBITS,
                        stopbits=serial.STOPBITS_ONE,
                        timeout=None):
         ser = serial.Serial()
-        ser.baudrate = baud_rate
+        ser.baudrate = baudrate
         ser.port     = port
         ser.parity   = parity
         ser.databits = databits
@@ -67,19 +67,19 @@ class BaseProtocol:
         """
         NOTE: Check if conversions are right
         """
-        im = imops.pad(image, (self.image_width, self.image_height))
+        im = imops.pad(image, (self.image_width, self.image_height))\
                   .convert("1")
         im = imops.mirror(im)
         im = imops.invert(im)
 
-        imbytes = im.tobytes()
+        imbytes = im.tobytes() # TODO needs BMP Header
         self._transmit(imbytes)
         return len(imbytes)
 
     def await_tx(self, msecs):
         sleep_time = 0.5 / 1000 # 0.5 msecs
         while msecs > 0:
-            if self._serial.out_waiting() == 0:
+            if self._serial.out_waiting == 0:
                 return 0
             sleep(sleep_time)
             msecs -= sleep_time
