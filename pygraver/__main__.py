@@ -7,12 +7,11 @@ from v2_protocol import V2Protocol
 from v3_protocol import V3Protocol
 from PIL import Image
 
-protocols = {i.version: i for i in [ V1Protocol,
-                                                   V2Protocol,
-                                                   V3Protocol ] }
+protocols = {i.version: i for i in [ V1Protocol, V2Protocol, V3Protocol ] }
+
 versions = tuple(protocols.keys())
 
-def create(port, protocol_version="v1"):
+def create(port, protocol_version="v3"):
     try:
         prot = protocols[protocol_version](port) # TODO check parameters
     except KeyError:
@@ -26,7 +25,7 @@ def port_and_protocol_args(parser):
     """
     parser.add_argument('port', type=str, default=None, help='Port')
     parser.add_argument('protocol', type=str, choices=versions,
-                                default=versions[0], help='Protocol version',)
+                                default=versions[-1], help='Protocol version',)
 
 def create_argument_parser():
     parser = argparse.ArgumentParser()
@@ -92,7 +91,11 @@ def reset(engraver):
 def upload(engraver, image=None):
     msecs = engraver.erase()
     engraver.await_tx(msecs)
-    sleep(float(msecs)/1000)
+
+    # NOTE: Wait ten times what the erase needed: empirically tested.
+    # if we don't wait the resulting image is a square full of ones.
+    sleep(float(msecs)/1000 * 10)
+
     engraver.upload_image(Image.open(image))
 
 
