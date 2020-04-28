@@ -6,6 +6,12 @@ from time import sleep
 class BaseProtocol:
     image_width  = 512
     image_height = 512
+
+    # NOTE: Empty border to add, empirically tested that images that write
+    # near to the corners have deformations, adding this empty border avoids
+    # deformations. Tested only in v3
+    image_border = 12
+
     version      = None
 
     def __init__(self, port, baudrate=57600,

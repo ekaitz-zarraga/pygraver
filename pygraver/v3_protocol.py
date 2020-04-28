@@ -1,5 +1,6 @@
 from base_protocol import BaseProtocol
 import PIL.ImageOps as imops
+from PIL import Image
 
 class V3Protocol(BaseProtocol):
 
@@ -47,12 +48,20 @@ class V3Protocol(BaseProtocol):
         return 50
 
     def upload_image(self, image):
-        # TODO
-        im = imops.pad(image, (self.image_width, self.image_height))\
+        im = imops.pad(imops.invert(image),
+                       (self.image_width-self.image_border,
+                        self.image_height-self.image_border))\
                   .convert("1")
-        im = imops.mirror(im)
+
+        # Create image wrapper to correct corner deformation
+        wrapper = Image.new("1", (self.image_width, self.image_height))
+        wrapper.paste(im, (int(self.image_border/2),
+                           int(self.image_border/2),
+                           int(self.image_width - self.image_border / 2),
+                           int(self.image_height - self.image_border / 2)))
+        wrapper.show()
 
         imbytes = im.tobytes()
-        self._transmit(imbytes)
+        self._transmit(wrapper.tobytes())
         return len(imbytes)
 
