@@ -3,42 +3,10 @@
 [EzGraver](https://github.com/camrein/EzGraver) migration to python using
 `pyserial` and `pillow`.
 
-## Status
-
-Tested on NEJEv3 but there are some issues that must be solved before
-considering it ready.
-
-For B&W images it engraves just a black square.
-
-- Test: B&W a checkerboard: **FAILED** Renders a black square
-- Test: A red rectangle: **SUCCESS** Renders the greyscale image it's supposed
-  to render.
-
-Needs more debugging
-
-## Development
-
-Considering you have `pipenv` installed and you are located in the project
-directory:
-
-Install the dependencies with:
-
-``` bash
-pipenv install
-```
-
-Run with:
-
-``` bash
-pipenv run python pygraver [args]
-```
-
-Or activate a shell `pipenv shell` and run it with `python pygraver [args]`
-
-## Command line options
+## Running
 
 Use the command line to ask the program. It uses `argparse` and has an easy to
-read help.
+read help. Or read the examples below.
 
 ``` bash
 PyGraver (master)$ pipenv run python pygraver -h
@@ -59,3 +27,50 @@ Commands:
     reset               Reset engraver
     upload              Upload image to engraver
 ```
+
+### Usage example
+
+``` bash
+$ python pygraver available                         # Get available ports
+/dev/ttyUSB0
+$ python pygraver upload /dev/ttyUSB0 v3 image.png  # Upload image
+$ python pygraver start /dev/ttyUSB0 v3 50          # 50 is ok for balsa wood
+```
+
+### Image preparation
+
+Images don't need to have an specific format, `upload` command is able to
+convert from most common formats (`jpg`, `png`...).
+
+Images are converted to black and white. The **white** part is going to be
+burned by the engraver. Make sure you got that correctly.
+
+### Recommended burning times
+
+These burning times have been tested successfully:
+
+| Material   | Burning time (ms) |
+|------------|------------------:|
+| Balsa wood |                50 |
+| Cardboard  |                25 |
+
+
+## Development
+
+Considering you have `pipenv` installed and you are located in the project
+directory:
+
+Install the dependencies with:
+
+``` bash
+pipenv install
+```
+
+Run with:
+
+``` bash
+pipenv run python pygraver [args]
+```
+
+Or activate a shell `pipenv shell` and run it with `python pygraver [args]`
+
