@@ -3,6 +3,8 @@
 [EzGraver](https://github.com/camrein/EzGraver) migration to python using
 `pyserial` and `pillow`.
 
+![Picture of the owner of the METERK I used for the tests](homage.jpg)
+
 ## Running
 
 Use the command line to ask the program. It uses `argparse` and has an easy to
