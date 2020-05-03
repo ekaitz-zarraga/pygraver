@@ -3,7 +3,7 @@
 [EzGraver](https://github.com/camrein/EzGraver) migration to python using
 `pyserial` and `pillow`.
 
-![Picture of the owner of the METERK I used for the tests](homage.jpg)
+![Picture of the owner of the METERK I used for the tests](homage.png)
 
 ## Running
 
